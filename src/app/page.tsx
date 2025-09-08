@@ -1,103 +1,251 @@
-import Image from "next/image";
+'use client';
+import React, { useState, useEffect } from "react";
+import { ChatSidebar } from '@/components/chat-sidebar';
+import { ChatPanel } from '@/components/chat-panel';
+import { VideoCallModal } from '@/components/video-call-modal';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
+import { Toaster } from '@/components/ui/sonner';
+import { useUIStore } from '@/store/ui-store';
+import { useI18n } from '@/hooks/use-i18n';
+import { User, Conversation } from '@/types';
 
-export default function Home() {
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [conversations, setConversations] = useState<Array<Conversation & { id: string; otherUser: User }>>([]);
+  
+  const { 
+    selectedConversationId, 
+    setSelectedConversation, 
+    activeCall, 
+    setActiveCall, 
+    clearActiveCall,
+    theme,
+    setTheme
+  } = useUIStore();
+  
+  const { t } = useI18n();
+
+  // Initialize theme
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  // Mock authentication check
+  useEffect(() => {
+    // In real app, check Firebase Auth state
+    const checkAuth = async () => {
+      // Simulate checking auth state
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo purposes, set as not authenticated initially
+      setIsAuthenticated(false);
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Mock data for demo
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      const mockConversations: Array<Conversation & { id: string; otherUser: User }> = [
+        {
+          id: 'conv1',
+          members: [currentUser.phone, '+34123456789'],
+          createdAt: '2024-01-15T10:00:00Z',
+          updatedAt: '2024-01-15T12:30:00Z',
+          lastMessage: {
+            id: 'msg1',
+            from: '+34123456789',
+            type: 'text',
+            preview: 'Perfecto, nos vemos mañana',
+            createdAt: '2024-01-15T12:30:00Z'
+          },
+          lastMessageAt: '2024-01-15T12:30:00Z',
+          unreadCount: { [currentUser.phone]: 2, '+34123456789': 0 },
+          settings: { mutedBy: [], archivedBy: [] },
+          otherUser: {
+            phone: '+34123456789',
+            displayName: 'Ana García',
+            username: 'anagar',
+            photoURL: 'https://images.unsplash.com/photo-1494790108755-2616b60fe372?w=40&h=40&fit=crop&crop=face',
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-15T11:00:00Z',
+            presence: { online: true, lastSeen: '2024-01-15T12:29:00Z' },
+            devices: [],
+            pushTokens: [],
+            privacy: { readReceipts: true, lastSeenVisible: 'everyone', allowCalls: true },
+            safety: { blockedUserIds: [], reportsCount: 0 },
+            softDeleted: false
+          }
+        },
+        {
+          id: 'conv2',
+          members: [currentUser.phone, '+34987654321'],
+          createdAt: '2024-01-14T09:00:00Z',
+          updatedAt: '2024-01-15T09:15:00Z',
+          lastMessage: {
+            id: 'msg2',
+            from: currentUser.phone,
+            type: 'text',
+            preview: 'Gracias por la información',
+            createdAt: '2024-01-15T09:15:00Z'
+          },
+          lastMessageAt: '2024-01-15T09:15:00Z',
+          unreadCount: { [currentUser.phone]: 0, '+34987654321': 0 },
+          settings: { mutedBy: [], archivedBy: [] },
+          otherUser: {
+            phone: '+34987654321',
+            displayName: 'Carlos López',
+            username: 'carlosl',
+            photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-15T08:00:00Z',
+            presence: { online: false, lastSeen: '2024-01-15T08:30:00Z' },
+            devices: [],
+            pushTokens: [],
+            privacy: { readReceipts: true, lastSeenVisible: 'contacts', allowCalls: true },
+            safety: { blockedUserIds: [], reportsCount: 0 },
+            softDeleted: false
+          }
+        }
+      ];
+      
+      setConversations(mockConversations);
+    }
+  }, [isAuthenticated, currentUser]);
+
+  const handleOnboardingComplete = async (userData: {
+    phone: string;
+    displayName: string;
+    username: string;
+    photoFile?: File;
+    about?: string;
+  }) => {
+    // Create user profile
+    const newUser: User = {
+      phone: userData.phone,
+      displayName: userData.displayName,
+      username: userData.username,
+      photoURL: userData.photoFile ? 'mock-url' : undefined,
+      about: userData.about,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      presence: { online: true, lastSeen: new Date().toISOString() },
+      devices: [],
+      pushTokens: [],
+      privacy: { readReceipts: true, lastSeenVisible: 'everyone', allowCalls: true },
+      safety: { blockedUserIds: [], reportsCount: 0 },
+      softDeleted: false
+    };
+    
+    setCurrentUser(newUser);
+    setIsAuthenticated(true);
+  };
+
+  const handleConversationSelect = (conversationId: string) => {
+    setSelectedConversation(conversationId);
+  };
+
+  const handleVideoCall = (userId: string) => {
+    const conversation = conversations.find(c => c.otherUser.phone === userId);
+    if (conversation) {
+      setActiveCall({
+        callId: 'call_' + Date.now(),
+        type: 'outgoing',
+        contact: {
+          displayName: conversation.otherUser.displayName,
+          photoURL: conversation.otherUser.photoURL
+        },
+        media: 'video'
+      });
+    }
+  };
+
+  const handleNewChat = () => {
+    // TODO: Implement new chat creation
+    console.log('Create new chat');
+  };
+
+  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+
+  // Show onboarding if not authenticated
+  if (!isAuthenticated) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="h-screen flex flex-col bg-background">
+      {/* Top Bar */}
+      <div className="border-b bg-background px-4 py-2 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-medium text-sm">
+              {currentUser?.displayName.charAt(0) || 'C'}
+            </span>
+          </div>
+          <h1 className="font-medium">Chat App</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+          
+          {/* User Menu - TODO: Implement settings menu */}
+          <button className="w-8 h-8 rounded-full overflow-hidden">
+            {currentUser?.photoURL ? (
+              <img 
+                src={currentUser.photoURL} 
+                alt={currentUser.displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center text-sm">
+                {currentUser?.displayName.charAt(0)}
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Chat Interface */}
+      <div className="flex-1 flex overflow-hidden">
+        <ChatSidebar
+          currentUserId={currentUser?.phone || ''}
+          selectedConversationId={selectedConversationId}
+          conversations={conversations}
+          onConversationSelect={handleConversationSelect}
+          onVideoCall={handleVideoCall}
+          onNewChat={handleNewChat}
+        />
+        <ChatPanel
+          currentUserId={currentUser?.phone || ''}
+          conversation={selectedConversation}
+          onVideoCall={handleVideoCall}
+        />
+      </div>
+
+      {/* Video Call Modal */}
+      {activeCall && (
+        <VideoCallModal
+          isOpen={!!activeCall}
+          onClose={clearActiveCall}
+          contactName={activeCall.contact.displayName}
+          contactAvatar={activeCall.contact.photoURL}
+        />
+      )}
+
+      {/* Toast Notifications */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'var(--background)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          },
+        }}
+      />
     </div>
   );
 }
