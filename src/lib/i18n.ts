@@ -338,15 +338,10 @@ export type TranslationKey = keyof typeof translations['es'];
 
 export function t(key: string, params?: Record<string, string | number>, language: Language = defaultLanguage): string {
   const keys = key.split('.');
-  let value: unknown = translations[language];
-
+  let value: any = translations[language];
+  
   for (const k of keys) {
-    if (typeof value === 'object' && value !== null && k in value) {
-      value = (value as Record<string, unknown>)[k];
-    } else {
-      value = undefined;
-      break;
-    }
+    value = value?.[k];
   }
   
   if (typeof value !== 'string') {

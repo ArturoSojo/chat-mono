@@ -27,34 +27,20 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
-
+      // Mock Firebase Auth phone verification
+      // In real implementation: await signInWithPhoneNumber(auth, phone, recaptchaVerifier)
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      
       setState(prev => ({
         ...prev,
         step: 'otp',
         phone,
-        sessionId: data.sessionId,
         otpSent: true,
         otpResendAvailableAt: Date.now() + 30000, // 30 seconds
       }));
     } catch (err) {
-      const code = (err as Error).message;
-      switch (code) {
-        case 'invalid_phone':
-          setError('Número de teléfono inválido.');
-          break;
-        case 'rate_limited':
-          setError('Demasiados intentos. Inténtalo más tarde.');
-          break;
-        default:
-          setError('Error al enviar el código. Inténtalo de nuevo.');
-      }
+      setError('Error al enviar el código. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -65,15 +51,16 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: state.sessionId, code: otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
-
-      setState(prev => ({ ...prev, step: 'profile' }));
+      // Mock OTP verification
+      // In real implementation: await confirmationResult.confirm(otp)
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (otp === '123456') {
+        setState(prev => ({ ...prev, step: 'profile' }));
+      } else {
+        throw new Error('Código incorrecto');
+      }
     } catch (err) {
       setError('Código incorrecto. Inténtalo de nuevo.');
     } finally {
@@ -88,17 +75,11 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: state.phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
-
+      // Mock resend OTP
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setState(prev => ({
         ...prev,
-        sessionId: data.sessionId,
         otpResendCount: prev.otpResendCount + 1,
         otpResendAvailableAt: Date.now() + 30000,
       }));

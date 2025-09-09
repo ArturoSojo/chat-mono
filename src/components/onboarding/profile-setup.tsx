@@ -288,7 +288,6 @@ export function ProfileSetup({ onComplete, onBack, loading, error }: ProfileSetu
 }
 
 // Debounce utility function
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -296,7 +295,6 @@ function debounce<T extends (...args: any[]) => any>(
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => { void func(...args); }, wait);
+    timeout = setTimeout(() => func(...args), wait);
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

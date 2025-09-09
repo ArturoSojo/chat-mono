@@ -200,13 +200,13 @@ export interface UIState {
 }
 
 // API response types
-export interface ApiResponse<T = unknown> {
+export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: unknown;
+    details?: any;
   };
 }
 
@@ -221,7 +221,6 @@ export interface AuthState {
 export interface OnboardingState {
   step: 'phone' | 'otp' | 'profile' | 'complete';
   phone?: string;
-  sessionId?: string;
   otpSent?: boolean;
   otpResendCount: number;
   otpResendAvailableAt?: number;
