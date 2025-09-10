@@ -15,6 +15,9 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [conversations, setConversations] = useState<Array<Conversation & { id: string; otherUser: User }>>([]);
   
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { 
     selectedConversationId, 
     setSelectedConversation, 
@@ -26,6 +29,27 @@ export default function App() {
   } = useUIStore();
   
   const { t } = useI18n();
+  
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/getData');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const data = await response.json();
+        setUserData(data);
+      } catch (err) {
+        //setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   // Initialize theme
   useEffect(() => {

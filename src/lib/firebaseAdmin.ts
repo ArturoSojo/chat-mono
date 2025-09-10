@@ -8,3 +8,4 @@ if (!getApps().length) {
   adminApp = getApps()[0]!;
 }
 export { adminApp };
+
