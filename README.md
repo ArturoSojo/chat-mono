@@ -37,10 +37,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## SMS Authentication
 
-To enable the `/api/auth/phone/start` endpoint to send verification codes via SMS, set the following environment variables:
+Phone verification is handled on the client using Firebase Auth's `signInWithPhoneNumber` and `confirmationResult.confirm` APIs. Twilio credentials are no longer required.
 
-- `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_FROM_NUMBER`
-
-The service stores pending sessions in Firestore using the `phoneSessions` collection.
+Ensure your Firebase project is configured and the necessary `NEXT_PUBLIC_FIREBASE_*` environment variables are set.

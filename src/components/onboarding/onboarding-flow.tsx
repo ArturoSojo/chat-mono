@@ -3,6 +3,8 @@ import { PhoneInput } from './phone-input';
 import { OTPVerification } from './otp-verification';
 import { ProfileSetup } from './profile-setup';
 import { OnboardingState } from '../../types';
+import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { auth } from '@/lib/firebaseClient';
 
 interface OnboardingFlowProps {
   onComplete: (userData: {
@@ -27,34 +29,19 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      const result = await signInWithPhoneNumber(auth, phone, verifier);
 
       setState(prev => ({
         ...prev,
         step: 'otp',
         phone,
-        sessionId: data.sessionId,
+        confirmationResult: result,
         otpSent: true,
         otpResendAvailableAt: Date.now() + 30000, // 30 seconds
       }));
     } catch (err) {
-      const code = (err as Error).message;
-      switch (code) {
-        case 'invalid_phone':
-          setError('Número de teléfono inválido.');
-          break;
-        case 'rate_limited':
-          setError('Demasiados intentos. Inténtalo más tarde.');
-          break;
-        default:
-          setError('Error al enviar el código. Inténtalo de nuevo.');
-      }
+      setError('Error al enviar el código. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -65,14 +52,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: state.sessionId, code: otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
-
+      await state.confirmationResult?.confirm(otp);
       setState(prev => ({ ...prev, step: 'profile' }));
     } catch (err) {
       setError('Código incorrecto. Inténtalo de nuevo.');
@@ -88,17 +68,12 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/phone/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: state.phone }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.code || 'unknown');
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      const result = await signInWithPhoneNumber(auth, state.phone!, verifier);
 
       setState(prev => ({
         ...prev,
-        sessionId: data.sessionId,
+        confirmationResult: result,
         otpResendCount: prev.otpResendCount + 1,
         otpResendAvailableAt: Date.now() + 30000,
       }));

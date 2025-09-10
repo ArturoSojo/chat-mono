@@ -94,6 +94,7 @@ export function PhoneInput({ onSubmit, loading, error }: PhoneInputProps) {
           </div>
         </CardContent>
       </Card>
+      <div id="recaptcha-container" className="hidden" />
     </div>
   );
 }

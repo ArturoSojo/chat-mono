@@ -1,3 +1,5 @@
+import type { ConfirmationResult } from 'firebase/auth';
+
 // Firestore data model types based on the use case
 
 export interface User {
@@ -221,7 +223,7 @@ export interface AuthState {
 export interface OnboardingState {
   step: 'phone' | 'otp' | 'profile' | 'complete';
   phone?: string;
-  sessionId?: string;
+  confirmationResult?: ConfirmationResult;
   otpSent?: boolean;
   otpResendCount: number;
   otpResendAvailableAt?: number;
