@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mic, MicOff, Video, VideoOff, Phone, PhoneOff, Settings } from 'lucide-react';
+import { X, Mic, MicOff, Video, VideoOff, PhoneOff, Settings } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';

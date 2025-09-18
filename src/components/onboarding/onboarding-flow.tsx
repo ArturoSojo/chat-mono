@@ -29,9 +29,8 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     try {
       // Mock Firebase Auth phone verification
       // In real implementation: await signInWithPhoneNumber(auth, phone, recaptchaVerifier)
-      
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
+
       setState(prev => ({
         ...prev,
         step: 'otp',
@@ -39,7 +38,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         otpSent: true,
         otpResendAvailableAt: Date.now() + 30000, // 30 seconds
       }));
-    } catch (err) {
+    } catch {
       setError('Error al enviar el código. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -53,15 +52,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     try {
       // Mock OTP verification
       // In real implementation: await confirmationResult.confirm(otp)
-      
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       if (otp === '123456') {
         setState(prev => ({ ...prev, step: 'profile' }));
       } else {
         throw new Error('Código incorrecto');
       }
-    } catch (err) {
+    } catch {
       setError('Código incorrecto. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -77,13 +75,13 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     try {
       // Mock resend OTP
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       setState(prev => ({
         ...prev,
         otpResendCount: prev.otpResendCount + 1,
         otpResendAvailableAt: Date.now() + 30000,
       }));
-    } catch (err) {
+    } catch {
       setError('Error al reenviar el código. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -102,14 +100,13 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     try {
       // Mock profile creation
       // In real implementation: create user document in Firestore, upload photo to Storage
-      
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       onComplete({
         phone: state.phone!,
         ...profile,
       });
-    } catch (err) {
+    } catch {
       setError('Error al crear el perfil. Inténtalo de nuevo.');
     } finally {
       setLoading(false);

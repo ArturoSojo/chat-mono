@@ -5,6 +5,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Message, MessageStatus, User } from '../../types';
 import { useI18n } from '../../hooks/use-i18n';
+import Image from 'next/image';
 
 interface MessageBubbleProps {
   message: Message & { id: string };
@@ -72,7 +73,7 @@ export function MessageBubble({
           <div className="space-y-2">
             {message.media && (
               <div className="rounded-lg overflow-hidden max-w-xs">
-                <img
+                <Image
                   src={message.media.url}
                   alt="Imagen"
                   className="w-full h-auto object-cover"

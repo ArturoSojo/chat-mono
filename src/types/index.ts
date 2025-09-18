@@ -57,7 +57,14 @@ export interface Conversation {
   };
 }
 
-export type MessageType = 'text' | 'image' | 'audio' | 'voice' | 'document' | 'sticker' | 'system';
+export type MessageType =
+  | 'text'
+  | 'image'
+  | 'audio'
+  | 'voice'
+  | 'document'
+  | 'sticker'
+  | 'system';
 
 export interface Message {
   from: string;
@@ -200,13 +207,13 @@ export interface UIState {
 }
 
 // API response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown, E = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: E;
   };
 }
 

@@ -94,7 +94,7 @@ export function ChatPanel({ currentUserId, conversation, onVideoCall }: ChatPane
     setIsTypingVisible(false);
   }, []);
 
-  const handleSendMessage = (content: string, attachments?: File[]) => {
+  const handleSendMessage = (content: string) => {
     if (!conversation) return;
 
     const newMessage: Message & { id: string } = {

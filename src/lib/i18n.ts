@@ -1,7 +1,6 @@
 // Internationalization configuration and translations
 
 export type Language = 'es' | 'en';
-
 export const defaultLanguage: Language = 'es';
 
 export const translations = {
@@ -336,27 +335,36 @@ export const translations = {
 
 export type TranslationKey = keyof typeof translations['es'];
 
-export function t(key: string, params?: Record<string, string | number>, language: Language = defaultLanguage): string {
+export function t(
+  key: string,
+  params?: Record<string, string | number>,
+  language: Language = defaultLanguage
+): string {
   const keys = key.split('.');
-  let value: any = translations[language];
-  
+  let value: unknown = translations[language]; // ← sin any
+
   for (const k of keys) {
-    value = value?.[k];
+    if (typeof value === 'object' && value !== null && k in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[k];
+    } else {
+      value = undefined;
+      break;
+    }
   }
-  
+
   if (typeof value !== 'string') {
-    // Fallback to English if Spanish translation is missing
+    // Fallback a EN si no es string o no existe
     if (language !== 'en') {
       return t(key, params, 'en');
     }
     return key;
   }
-  
+
   if (params) {
-    return value.replace(/\{(\w+)\}/g, (match: string, param: string) => {
-      return params[param]?.toString() || match;
-    });
+    return value.replace(/\{(\w+)\}/g, (_match: string, param: string) =>
+      param in params ? String(params[param]) : _match
+    );
   }
-  
+
   return value;
 }

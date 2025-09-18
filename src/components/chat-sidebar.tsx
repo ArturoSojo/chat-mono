@@ -1,11 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, MoreVertical, Phone, Video, Users } from 'lucide-react';
+import { Search, Plus, Phone, Video, Users } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Separator } from './ui/separator';
 import { useI18n } from '../hooks/use-i18n';
 import { User, Conversation } from '../types';
 

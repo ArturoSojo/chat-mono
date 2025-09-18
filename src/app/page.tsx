@@ -7,8 +7,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
 import { Toaster } from '@/components/ui/sonner';
 import { useUIStore } from '@/store/ui-store';
-import { useI18n } from '@/hooks/use-i18n';
 import { User, Conversation } from '@/types';
+import Image from 'next/image';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,11 +21,9 @@ export default function App() {
     activeCall, 
     setActiveCall, 
     clearActiveCall,
-    theme,
-    setTheme
+    theme
   } = useUIStore();
   
-  const { t } = useI18n();
 
   // Initialize theme
   useEffect(() => {
@@ -194,7 +192,7 @@ export default function App() {
           {/* User Menu - TODO: Implement settings menu */}
           <button className="w-8 h-8 rounded-full overflow-hidden">
             {currentUser?.photoURL ? (
-              <img 
+              <Image 
                 src={currentUser.photoURL} 
                 alt={currentUser.displayName}
                 className="w-full h-full object-cover"
