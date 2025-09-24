@@ -9,6 +9,10 @@ import { Toaster } from '@/components/ui/sonner';
 import { useUIStore } from '@/store/ui-store';
 import { useI18n } from '@/hooks/use-i18n';
 import { User, Conversation } from '@/types';
+//pb
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import {app, auth} from '@/lib/firebaseClient'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,11 +33,88 @@ export default function App() {
   } = useUIStore();
   
   const { t } = useI18n();
+
+/*pebe  */
+//const app = initializeApp(firebaseConfig); // ✅ instancia de App
+//const auth = getAuth(app); // ✅ instancia de Auth
+
+/*const setUpRecaptcha = () => {
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth, 
+      'recaptcha-container',
+      {
+      size: 'invisible',
+      callback: (response: string) => {
+        console.log('reCAPTCHA resuelto:', response);
+      },
+    }, // ✅ instancia de Auth
+    );
+    window.recaptchaVerifier.render(); // opcional: renderiza el widget
+  
+};*/
+const setUpRecaptcha = async () => {
+  if (!window.recaptchaVerifier) {
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth, // ✅ primer argumento: instancia de Auth
+      'recaptcha-container', // ✅ segundo argumento: ID del div
+      {
+        size: 'invisible',
+        callback: (response: string) => {
+          console.log('reCAPTCHA resuelto:', response);
+        },
+      }
+    );
+    await window.recaptchaVerifier.render(); // ✅ espera que se renderice
+  }
+};
+
+
+const phoneNumber = '+584243241710';
+const appVerifier = window.recaptchaVerifier;
+const auth2 = getAuth();
+function mia(){
+  console.log("mia", auth2)
+  signInWithPhoneNumber(auth2, phoneNumber, appVerifier)
+  .then((confirmationResult) => {
+    // SMS sent. Prompt user to type the code from the message, then sign the
+    // user in with confirmationResult.confirm(code).
+    window.confirmationResult = confirmationResult;
+    // ...
+  }).catch((error) => {
+    // Error; SMS not sent
+    // ...
+  });
+}
+
+const handleSendOtp = async (phoneNumber: string) => {
+  setUpRecaptcha();
+  const appVerifier = window.recaptchaVerifier;
+  if (!appVerifier) {
+    console.error('reCAPTCHA no está listo');
+    return;
+  }
+  console.log("handleSendOtp", auth2)
+
+  try {
+    console.log("handleSendOtp2", appVerifier)
+    const confirmationResult = await signInWithPhoneNumber(auth2, '+584243241710', appVerifier);
+    window.confirmationResult = confirmationResult;
+    alert('OTP enviado');
+  } catch (error) {
+    console.error('Error al enviar OTP:', error);
+    //grecaptcha.reset(window.recaptchaWidgetId);
+  }
+};
+
+/*pebe  */
+
   
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch('/api/getData');
+        //const response = await fetch('/api/getData');
+        const response = await fetch('/api/auth/phone/start');
 
         if (!response.ok) {
           throw new Error('Failed to fetch data');
@@ -47,10 +128,54 @@ export default function App() {
         setLoading(false);
       }
     }
+    
+    async function postData() {
+      try {
+        // Datos que deseas enviar a tu API Route
+        const datosParaEnviar = {
+          phone: '+34123456789"',
+         /* displayName: "Ana Pérez",
+          username: 'anita',
+          photoURL: "https://.../avatars/uuid.jpg",
+          about: "Hola ",
+          createdAt: "2025-09-03T12:00:00Z",
+          updatedAt: "2025-09-03T12:00:00Z",
+          presence: "presence"*/
+
+
+          // Otros campos que tu API Route espera
+        };
+
+        const response = await fetch('/api/auth/phone/start', {
+          method: 'POST', // 👈 Especifica el método HTTP
+          headers: {
+            'Content-Type': 'application/json', // 👈 Indica el formato de los datos
+          },
+          body: JSON.stringify(datosParaEnviar), // 👈 Convierte el objeto a una cadena JSON
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to post data');
+        }
+
+        const result = await response.json();
+        console.log('Datos guardados con éxito:', result);
+      } catch (err) {
+        //setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Llama a la función para ejecutar la solicitud POST
+    postData();
 
     fetchData();
+    handleSendOtp('+584243241710');
   }, []);
 
+
+  
   // Initialize theme
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -198,9 +323,17 @@ export default function App() {
   if (!isAuthenticated) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="h-screen flex flex-col bg-background">
+      <div>
+        <h1>Realizando una solicitud POST...</h1>
+        <div id="recaptcha-container" />
+        <button onClick={() => handleSendOtp('+584243241710')}>Send OTP</button>
+        <button onClick={mia} >Send OTP mia</button>
+      </div>
       {/* Top Bar */}
       <div className="border-b bg-background px-4 py-2 flex justify-between items-center">
         <div className="flex items-center gap-3">

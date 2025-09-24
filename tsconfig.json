@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "target": "ES2020",
     "lib": [
       "dom",
@@ -33,12 +34,14 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/types/global.d.ts"
   ],
   "exclude": [
     "node_modules",
     ".ts-server-build",
     "server.ts",
-    "server"
+    "server",
+
   ]
 }
