@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { useUIStore } from '@/store/ui-store';
 import { User, Conversation } from '@/types';
 import Image from 'next/image';
+import PhoneAuth from "./PhoneAuth";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -175,6 +176,7 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-background">
+      <PhoneAuth></PhoneAuth>
       {/* Top Bar */}
       <div className="border-b bg-background px-4 py-2 flex justify-between items-center">
         <div className="flex items-center gap-3">
