@@ -1,55 +1,51 @@
 "use client";
 import { useState } from "react";
-import { ConfirmationResult, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import {app, auth} from '@/lib/firebaseClient'
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+import { auth } from "@/lib/firebaseClient";
+
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier;
+  }
+}
 
 export default function PhoneAuth() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  //const [confirmationResult, setConfirmationResult] = useState(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-
   const setupRecaptcha = () => {
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container",
-      {
-        size: "normal", // invisible o 'normal'
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible", // cambia a "normal" para debug
         callback: (response: ResponseType) => {
-          console.log("reCAPTCHA verificado");
+          console.log("✅ reCAPTCHA verificado", response);
         },
-        
-      }
-      
-    );
-   
+      });
+    }
+    return window.recaptchaVerifier;
   };
 
   const sendCode = async () => {
-    setupRecaptcha();
-    const appVerifier = window.recaptchaVerifier;
-    console.log("appVerifier", appVerifier);
     try {
+      const appVerifier = setupRecaptcha();
       const result = await signInWithPhoneNumber(auth, phone, appVerifier);
-      setConfirmationResult(result );
+      setConfirmationResult(result); // ✅ ahora lo guardamos
       alert("Código enviado por SMS!");
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error enviando SMS:", err);
     }
   };
 
   const verifyCode = async () => {
     try {
-        if (confirmationResult) {
-            const result = confirmationResult.confirm(otp);
-            console.log("Usuario autenticado:", result);
-        }
-
-       // const result = await confirmationResult.confirm(otp);
-      //console.log("Usuario autenticado:", result.user);
+      if (!confirmationResult) {
+        throw new Error("No hay código pendiente de verificar");
+      }
+      const result = await confirmationResult.confirm(otp);
+      console.log("🎉 Usuario autenticado:", result.user);
     } catch (err) {
-      console.error("Código incorrecto", err);
+      console.error("❌ Código incorrecto:", err);
     }
   };
 
@@ -63,6 +59,7 @@ export default function PhoneAuth() {
       />
       <button onClick={sendCode}>Enviar código</button>
 
+      {/* Aquí se monta el reCAPTCHA */}
       <div id="recaptcha-container"></div>
 
       <input
@@ -71,7 +68,7 @@ export default function PhoneAuth() {
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
       />
-      <button onClick={verifyCode}>Verificar</button>
+      <button onClick={verifyCode}>Verifica2r</button>
     </div>
   );
 }
